@@ -120,3 +120,49 @@ bool lpm_is_kb_idle(void) {
     return power_on_indicator_timer == 0 && !factory_reset_indicating();
 }
 #endif
+
+bool rgb_matrix_indicators_user(void) {
+    if (host_keyboard_led_state().caps_lock) {
+        for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+                uint8_t index = g_led_config.matrix_co[row][col];
+                uint16_t kc = keymap_key_to_keycode(layer_state, (keypos_t){col,row});
+                // if (g_led_config.flags[index] & LED_FLAG_KEYLIGHT && index != NO_LED) {
+                if (kc >= KC_A && kc <= KC_Z && index != NO_LED) {
+                    // rgb_matrix_set_color(index, 0xff * rgblight_get_val() / 255, 0, 0);
+                    rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + 127) % 255, rgblight_get_sat(), rgblight_get_val()});
+                    rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
+                }
+            }
+        }
+    }
+
+    // Caps lock
+    if (host_keyboard_led_state().caps_lock) {
+#       if defined(DIM_CAPS_LOCK)
+        SET_LED_OFF(CAPS_LOCK_INDEX);
+#       else
+        // SET_LED_ON(CAPS_LOCK_INDEX);
+        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + 127) % 255, rgblight_get_sat(), rgblight_get_val()});
+        rgb_matrix_set_color(CAPS_LOCK_INDEX, rgb.r, rgb.g, rgb.b);
+#       endif
+    }
+
+    // Display layers
+    if (get_highest_layer(layer_state) > 0) {
+        uint8_t layer = get_highest_layer(layer_state);
+
+        for (uint8_t row = 0; row < MATRIX_ROWS; ++row) {
+            for (uint8_t col = 0; col < MATRIX_COLS; ++col) {
+                uint8_t index = g_led_config.matrix_co[row][col];
+
+                if (index != NO_LED && keymap_key_to_keycode(layer, (keypos_t){col,row}) > KC_TRNS) {
+                    // rgb_matrix_set_color(index, 0x00, 0xff * rgblight_get_val() / 255, 0x00);
+                    rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + 127) % 255, rgblight_get_sat(), rgblight_get_val()});
+                    rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
+                }
+            }
+        }
+    }
+    return true;
+}
