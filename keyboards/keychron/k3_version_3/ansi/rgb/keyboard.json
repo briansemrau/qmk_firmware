@@ -22,7 +22,7 @@
             "digital_rain": true,
             // "dual_beacon": true,
             // "jellybean_raindrops": true,
-            "pixel_rain": true,
+            // "pixel_rain": true,
             // "rainbow_beacon": true,
             // "rainbow_moving_chevron": true,
             // "solid_reactive_multinexus": true,
@@ -30,8 +30,8 @@
             // "solid_reactive_simple": true,
             // "solid_splash": true,
             // "splash": true,
-            // "typing_heatmap": true,
-            "simple_fluid": true,
+            "typing_heatmap": true,
+            // "simple_fluid": true,
             "twinkle": true,
             "waves": true
         }

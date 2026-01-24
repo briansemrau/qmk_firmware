@@ -29,11 +29,12 @@ static bool waves(effect_params_t* params) {
     // Decay
     // if (params->iter == 0 && timer_elapsed(waves_decay_timer) >= WAVES_DECAY_UPDATE_MS) {
         // waves_decay_timer = timer_read();
-        // for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; ++i) {
-        for (uint8_t i = led_min; i < led_max; i++) {
+        for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; ++i) {
+        // for (uint8_t i = led_min; i < led_max; i++) {
             uint8_t *buffer_p = &(g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS]);
             if (*buffer_p > 0) {
-                *buffer_p = qsub8(*buffer_p, SCALE_TIME(16*deltaTime));
+                // *buffer_p = qsub8(*buffer_p, SCALE_TIME(16*deltaTime));
+                *buffer_p = qsub8(*buffer_p, SCALE_TIME(4*deltaTime));
                 // *buffer_p /= 2;
             }
         }
@@ -56,21 +57,22 @@ static bool waves(effect_params_t* params) {
 
     // if (params->iter == 0 && timer_elapsed(waves_timer) >= WAVES_UPDATE_MS) {
     //     waves_timer = timer_read();
-        for (uint8_t i = led_min; i < led_max; i++) {
-            RGB_MATRIX_TEST_LED_FLAGS();
+        // for (uint8_t i = led_min; i < led_max; i++) {
+        for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+            // RGB_MATRIX_TEST_LED_FLAGS();
             for (uint8_t j = 0; j < g_last_hit_tracker.count; j++) {
-                int16_t  dx   = g_led_config.point[i].x - g_last_hit_tracker.x[j];
-                int16_t  dy   = g_led_config.point[i].y - g_last_hit_tracker.y[j];
+                int16_t  dx   = ((int16_t)g_led_config.point[i].x) - ((int16_t)g_last_hit_tracker.x[j]);
+                int16_t  dy   = ((int16_t)g_led_config.point[i].y) - ((int16_t)g_last_hit_tracker.y[j]);
                 uint8_t  dist = sqrt16(dx * dx + dy * dy);
                 uint16_t tick = SCALE_TIME(g_last_hit_tracker.tick[j]);
                 // uint16_t tick = scale16by8(g_last_hit_tracker.tick[j], qadd8(rgb_matrix_config.speed, 1));
                 
                 // int32_t wave_radius = tick - dist;
-                int32_t wave_radius = dist - tick;
+                int32_t wave_radius = dist - tick + (224/15);
                 if (ABS(wave_radius) < (224/15)) {
                     uint8_t *buffer_p = &(g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS]);
                     // *buffer_p = MAX(*buffer_p, 255 - MIN(255, scale16by8(wave_radius, 127)));
-                    *buffer_p = qadd8(*buffer_p, scale16by8(qsub8(224, dist), SCALE_TIME(32*deltaTime)));
+                    *buffer_p = qadd8(*buffer_p, scale16by8(qsub8(224, dist), SCALE_TIME(8*deltaTime)));
                     // *buffer_p = qadd8(*buffer_p, scale16by8(qsub8(224, dist), SCALE_TIME(32*deltaTime)));
                 }
             }
@@ -78,12 +80,13 @@ static bool waves(effect_params_t* params) {
     // }
  
     // Rendering
-    for (uint8_t index = led_min; index < led_max; ++index) {
-        uint8_t buffer_v = g_rgb_frame_buffer[index/MATRIX_COLS][index%MATRIX_COLS];
-        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/8) % 255, rgblight_get_sat(), rgblight_get_val()});//*3/4+buffer_v/4});
-        rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
+    // for (uint8_t i = led_min; index < led_max; ++i) {
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+        uint8_t buffer_v = g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS];
+        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/4) % 255, rgblight_get_sat(), rgblight_get_val()});//*3/4+buffer_v/4});
+        rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
     }
-    return rgb_matrix_check_finished_leds(led_max);
+    return false;//rgb_matrix_check_finished_leds(led_max);
 }
 
 #endif // RGB_MATRIX_CUSTOM_EFFECT_IMPLS
