@@ -53,7 +53,7 @@ static bool twinkle(effect_params_t* params) {
     if (params->iter == 0 && timer_elapsed(twinkle_compute_timer) >= TWINKLE_RANDOM_UPDATE_MS) {
         twinkle_compute_timer = timer_read();
         uint8_t index = pcg32_random_r(&random_state) % RGB_MATRIX_LED_COUNT;
-        g_rgb_frame_buffer[index/MATRIX_COLS][index%MATRIX_COLS] = 127;
+        g_rgb_frame_buffer[index/MATRIX_COLS][index%MATRIX_COLS] = 64 + (pcg32_random_r(&random_state) % 255) / 2;
     }
     
     // Reactive
@@ -67,12 +67,13 @@ static bool twinkle(effect_params_t* params) {
     }
 
     // Rendering
-    for (uint8_t index = led_min; index < led_max; ++index) {
-        uint8_t buffer_v = g_rgb_frame_buffer[index/MATRIX_COLS][index%MATRIX_COLS];
-        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/8) % 255, rgblight_get_sat(), rgblight_get_val()*3/4+buffer_v/4});
-        rgb_matrix_set_color(index, rgb.r, rgb.g, rgb.b);
+    // for (uint8_t i = led_min; i < led_max; ++i) {
+    for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; ++i) {
+        uint8_t buffer_v = g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS];
+        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/4) % 255, rgblight_get_sat()*3/4+buffer_v/4, rgblight_get_val()});
+        rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
     }
-    return rgb_matrix_check_finished_leds(led_max);
+    return false;//rgb_matrix_check_finished_leds(led_max);
 }
 
 #endif // RGB_MATRIX_CUSTOM_EFFECT_IMPLS

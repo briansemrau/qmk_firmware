@@ -7,7 +7,20 @@
         // "**/.build": true,
         "**/*.hex": true,
         "**/*.bin": true,
-        "**/*.uf2": true
+        "**/*.uf2": true,
+        "keyboards/keychron/k0*": true,
+        "keyboards/keychron/k1*": true,
+        "keyboards/keychron/k2*": true,
+        "keyboards/keychron/k3_max": true,
+        "keyboards/keychron/k3_pro*": true,
+        "keyboards/keychron/k4*": true,
+        "keyboards/keychron/k5*": true,
+        "keyboards/keychron/k6*": true,
+        "keyboards/keychron/k7*": true,
+        "keyboards/keychron/k8*": true,
+        "keyboards/keychron/k9*": true,
+        "keyboards/keychron/q*": true,
+        "keyboards/keychron/v*": true,
     },
     "files.associations": {
         "*.h": "c",
@@ -41,5 +54,5 @@
             "args": ["--login"]
         }
     },
-    "terminal.integrated.defaultProfile.windows": "QMK_MSYS"
+    "terminal.integrated.defaultProfile.windows": "QMK_MSYS",
 }
