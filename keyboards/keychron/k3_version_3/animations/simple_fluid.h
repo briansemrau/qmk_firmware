@@ -3,7 +3,7 @@ RGB_MATRIX_EFFECT(simple_fluid)
 
 #ifdef RGB_MATRIX_CUSTOM_EFFECT_IMPLS
 
-#define SIMPLE_FLUID_UPDATE_MS 50
+#define SIMPLE_FLUID_UPDATE_MS scale16by8(50, qadd8(rgb_matrix_config.speed, 1))
 
 typedef struct {
     uint8_t x_start, x_end;
@@ -90,7 +90,7 @@ static bool simple_fluid(effect_params_t* params) {
         // float h = READ_H((int)x) * (1.f - frac) + READ_H((int)x+1) * frac;
         float h = 0.f;
         uint8_t w = MAX(1, (int)(((float)g_led_sizes[index][0])*FLUID_W/(MATRIX_ROWS*4)));
-        uint8_t x_offs = g_led_config.point[index].x*FLUID_W/224 - w/2;
+        uint8_t x_offs = qadd8(g_led_config.point[index].x*FLUID_W/224, w/2);
         uint8_t x0 = MAX(x_offs, 0);
         uint8_t x1 = MAX(MIN(x_offs+w, FLUID_W), x0+1);
         for (uint8_t x = x0; x < x1; ++x) {

@@ -34,7 +34,7 @@ static bool waves(effect_params_t* params) {
             uint8_t *buffer_p = &(g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS]);
             if (*buffer_p > 0) {
                 // *buffer_p = qsub8(*buffer_p, SCALE_TIME(16*deltaTime));
-                *buffer_p = qsub8(*buffer_p, SCALE_TIME(4*deltaTime));
+                *buffer_p = qsub8(*buffer_p, SCALE_TIME(8*deltaTime));
                 // *buffer_p /= 2;
             }
         }
@@ -68,11 +68,11 @@ static bool waves(effect_params_t* params) {
                 // uint16_t tick = scale16by8(g_last_hit_tracker.tick[j], qadd8(rgb_matrix_config.speed, 1));
                 
                 // int32_t wave_radius = tick - dist;
-                int32_t wave_radius = dist - tick + (224/15);
+                int32_t wave_radius = dist - tick - (224/15);
                 if (ABS(wave_radius) < (224/15)) {
                     uint8_t *buffer_p = &(g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS]);
                     // *buffer_p = MAX(*buffer_p, 255 - MIN(255, scale16by8(wave_radius, 127)));
-                    *buffer_p = qadd8(*buffer_p, scale16by8(qsub8(224, dist), SCALE_TIME(8*deltaTime)));
+                    *buffer_p = qadd8(*buffer_p, scale16by8(SCALE_TIME(24*deltaTime), qsub8(255, dist)));
                     // *buffer_p = qadd8(*buffer_p, scale16by8(qsub8(224, dist), SCALE_TIME(32*deltaTime)));
                 }
             }
@@ -80,10 +80,26 @@ static bool waves(effect_params_t* params) {
     // }
  
     // Rendering
+    uint8_t backlight_val = 0;
+    for (uint8_t j = 0; j < g_last_hit_tracker.count; j++) {
+        uint16_t tick = SCALE_TIME(g_last_hit_tracker.tick[j]);
+        const int32_t maxtick = 500;
+        if (tick < maxtick) {
+            uint8_t val = (maxtick - (int32_t)tick) * 0xFF / maxtick;
+            backlight_val = MAX(val, backlight_val);
+        }
+    }
+    // uint8_t backlight_val8 = sqrt16(backlight_val);
+    backlight_val = 255 - backlight_val;
+
     // for (uint8_t i = led_min; index < led_max; ++i) {
     for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
         uint8_t buffer_v = g_rgb_frame_buffer[i/MATRIX_COLS][i%MATRIX_COLS];
-        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/4) % 255, rgblight_get_sat(), rgblight_get_val()});//*3/4+buffer_v/4});
+        rgb_t rgb = hsv_to_rgb((hsv_t){(rgblight_get_hue() + buffer_v/4) % 255, rgblight_get_sat(), qadd8(buffer_v, scale8(rgblight_get_val(), backlight_val))});//*3/4+buffer_v/4});
+
+        // hsv_t hsv = {170 - qsub8(val, 85), rgb_matrix_config.hsv.s, scale8((qadd8(170, val) - 170) * 3, rgb_matrix_config.hsv.v)};
+        // rgb_t rgb = rgb_matrix_hsv_to_rgb(hsv);
+
         rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
     }
     return false;//rgb_matrix_check_finished_leds(led_max);
